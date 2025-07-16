@@ -13,7 +13,7 @@ const decTrans = document.getElementById('decrementTranspose');
 const chordDisplay = document.getElementById('chordDisplay');
 const logOutput = document.getElementById('logOutput');
 
-let currentChannel = 8;
+let currentChannel = 7;
 let transpose = 0;
 const pressedSet = new Set();
 
