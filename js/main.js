@@ -59,13 +59,16 @@ const midi = new MIDIHandler({
 });
 
 function updateChord() {
-    chordDisplay.textContent = detectChord(Array.from(pressedSet));
+    // トランスポーズされたノートでコード検出
+    const transposedNotes = Array.from(pressedSet).map(note => note + transpose);
+    chordDisplay.textContent = detectChord(transposedNotes);
 }
 
 // トランスポーズ値を更新してUIに反映
 function updateTranspose(newValue) {
     transpose = newValue;
     transInput.value = transpose;
+    updateChord(); // トランスポーズ変更時にコードも更新
     log(`Transpose set to: ${transpose}`);
 }
 
@@ -101,7 +104,10 @@ async function setup() {
         incChan.onclick = () => updateChannel(currentChannel + 1);
         decChan.onclick = () => updateChannel(currentChannel - 1);
 
-        transInput.oninput = () => transpose = +transInput.value;
+        transInput.oninput = () => {
+            transpose = +transInput.value;
+            updateChord(); // 手動入力時にもコードを更新
+        };
         incTrans.onclick = () => updateTranspose(transpose + 1);
         decTrans.onclick = () => updateTranspose(transpose - 1);
 
