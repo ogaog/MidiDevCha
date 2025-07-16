@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MIDIデバチャ＋コード検出</title>
+    <style>
+        body {
+            background-color: #1f1f1f;
+            color: #ccc;
+            font-family: Arial, sans-serif;
+            padding: 1rem;
+        }
+
+        select,
+        input,
+        button {
+            background: #333;
+            color: #ccc;
+            border: 1px solid #555;
+            padding: 0.3rem;
+            margin: 0.3rem;
+            border-radius: 6px;
+        }
+
+        #chordDisplay {
+            font-size: 1.5rem;
+            margin-left: 0.5rem;
+        }
+
+        #logOutput {
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #222;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>MIDIデバチャ＋コード検出</h1>
+
+    <div>
+        <label for="inputDeviceSelect">入力デバイス:</label>
+        <select id="inputDeviceSelect"></select>
+    </div>
+    <div>
+        <label for="outputDeviceSelect">出力デバイス:</label>
+        <select id="outputDeviceSelect"></select>
+    </div>
+    <div>
+        <label for="channelSelect">チャンネル (1-16):</label>
+        <select id="channelSelect"></select>
+        <button id="incrementChannel">+</button>
+        <button id="decrementChannel">-</button>
+    </div>
+    <div>
+        <label for="transposeAmount">トランスポーズ:</label>
+        <input type="number" id="transposeAmount" value="0">
+        <button id="incrementTranspose">+</button>
+        <button id="decrementTranspose">-</button>
+    </div>
+    <div>
+        <strong>Current Chord:</strong>
+        <span id="chordDisplay">–</span>
+    </div>
+    <h2>ログ</h2>
+    <div id="logOutput"></div>
+
+    <!-- Tonal.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/tonal/browser/tonal.min.js"></script>
+    <!-- ES モジュール読み込み -->
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
