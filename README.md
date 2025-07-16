@@ -1,22 +1,19 @@
 # MIDIデバチャ
 
-Web MIDI APIを使用したチャンネル選択可能なリアルタイムMIDIデバイス入出力とコード検出（Tonal.js使用）アプリケーション
+Web MIDI APIを使用したチャンネル選択可能なMIDIデバイス入出力処理とコード検出（Tonal.js使用）
 
 ### 機能
 - MIDIデバイス選択（入力・出力）
-- リアルタイムチャンネル変更
-- トランスポーズ機能
-- 押下中ノートからのコード自動検出
-- 矢印キーショートカット
-  - ↑↓: トランスポーズ調整
-  - ←→: チャンネル変更
+- チャンネル変更
+- トランスポーズ
+- 押下中ノートからのコード検出
 
 ### 使用技術
 - **Web MIDI API**: ブラウザネイティブのMIDI処理
-- **Tonal.js**: 音楽理論ライブラリによるコード検出
+- **Tonal.js**: コード検出
 
 ### 依存関係
-- [Tonal.js](https://github.com/tonaljs/tonal) (CDN経由): 音楽理論とコード検出
+- [Tonal.js](https://github.com/tonaljs/tonal) (CDN経由)
 - Web MIDI API対応ブラウザ（Chrome等）
 
 ### 使用方法
