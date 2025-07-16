@@ -62,13 +62,13 @@ const midi = new MIDIHandler({
         // 音階名を含むログ出力
         const originalNoteName = noteToName(note);
         const transposedNoteName = noteToName(transposedNote);
-        const cmdType = (cmd === 0x90 && vel > 0) ? 'ON' : 'OFF';
-        log(`Note ${cmdType}: ${originalNoteName} → ${transposedNoteName} (Ch:${currentChannel + 1}, Vel:${vel})`);
+        const cmdType = (cmd === 0x90 && vel > 0) ? 'ON ' : 'OFF';
+        log(`Note ${cmdType}:\t${originalNoteName}\t→\t${transposedNoteName}\t|\tCh:${currentChannel + 1}\t|\tVel:${vel}`);
     },
     onOtherMessage: ([status, d1, d2]) => {
         const newStatus = (status & 0xf0) | currentChannel;
         midi.sendMessage([newStatus, d1, d2]);
-        log(`Control: Status:${newStatus.toString(16)} Data:${d1},${d2} (Ch:${currentChannel + 1})`);
+        log(`Control:\t\tStatus:${newStatus.toString(16)}\t|\tData:${d1},${d2}\t|\tCh:${currentChannel + 1}`);
     }
 });
 
@@ -83,7 +83,7 @@ function updateTranspose(newValue) {
     transpose = newValue;
     transInput.value = transpose;
     updateChord(); // トランスポーズ変更時にコードも更新
-    log(`Transpose set to: ${transpose}`);
+    log(`Settings:\t\tTranspose\t→\t${transpose}`);
 }
 
 // チャンネル値を更新してUIに反映
@@ -91,7 +91,7 @@ function updateChannel(newValue) {
     if (newValue >= 0 && newValue <= 15) {
         currentChannel = newValue;
         channelSelect.value = currentChannel;
-        log(`Channel set to: ${currentChannel + 1}`);
+        log(`Settings:\t\tChannel\t\t→\t${currentChannel + 1}`);
     }
 }
 
