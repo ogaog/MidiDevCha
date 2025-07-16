@@ -17,9 +17,23 @@ let currentChannel = 8;
 let transpose = 0;
 const pressedSet = new Set();
 
-// ログ出力
+// ログ管理
+const MAX_LOG_LINES = 100; // ログの最大行数
+
+// ログ出力（最大行数制限付き）
 function log(msg) {
-    logOutput.textContent = msg + '\n' + logOutput.textContent;
+    const timestamp = new Date().toLocaleTimeString();
+    const logLine = `[${timestamp}] ${msg}`;
+
+    // 新しいログを先頭に追加
+    logOutput.textContent = logLine + '\n' + logOutput.textContent;
+
+    // 行数制限チェック
+    const lines = logOutput.textContent.split('\n');
+    if (lines.length > MAX_LOG_LINES) {
+        // 制限を超えた場合、古い行を削除
+        logOutput.textContent = lines.slice(0, MAX_LOG_LINES).join('\n');
+    }
 }
 
 const midi = new MIDIHandler({
