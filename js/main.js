@@ -11,7 +11,11 @@ const transInput = document.getElementById('transposeAmount');
 const incTrans = document.getElementById('incrementTranspose');
 const decTrans = document.getElementById('decrementTranspose');
 const chordDisplay = document.getElementById('chordDisplay');
-const logOutput = document.getElementById('logOutput');
+const noteOnLog = document.getElementById('noteOnLog');
+const allLog = document.getElementById('allLog');
+const logContainer = document.getElementById('logContainer');
+const splitVertical = document.getElementById('splitVertical');
+const splitHorizontal = document.getElementById('splitHorizontal');
 
 let currentChannel = 7;
 let transpose = 0;
@@ -29,18 +33,28 @@ function noteToName(noteNumber) {
 }
 
 // ログ出力（最大行数制限付き）
-function log(msg) {
+function log(msg, isNoteOn = false) {
     const timestamp = new Date().toLocaleTimeString();
     const logLine = `[${timestamp}] ${msg}`;
 
-    // 新しいログを先頭に追加
-    logOutput.textContent = logLine + '\n' + logOutput.textContent;
+    // すべてのログに追加
+    allLog.textContent = logLine + '\n' + allLog.textContent;
 
-    // 行数制限チェック
-    const lines = logOutput.textContent.split('\n');
+    // Note ON の場合は専用ログにも追加
+    if (isNoteOn) {
+        noteOnLog.textContent = logLine + '\n' + noteOnLog.textContent;
+    }
+
+    // 行数制限チェック（両方のログ領域）
+    limitLogLines(allLog);
+    limitLogLines(noteOnLog);
+}
+
+// ログ行数制限関数
+function limitLogLines(logElement) {
+    const lines = logElement.textContent.split('\n');
     if (lines.length > MAX_LOG_LINES) {
-        // 制限を超えた場合、古い行を削除
-        logOutput.textContent = lines.slice(0, MAX_LOG_LINES).join('\n');
+        logElement.textContent = lines.slice(0, MAX_LOG_LINES).join('\n');
     }
 }
 
@@ -63,7 +77,8 @@ const midi = new MIDIHandler({
         const originalNoteName = noteToName(note);
         const transposedNoteName = noteToName(transposedNote);
         const cmdType = (cmd === 0x90 && vel > 0) ? 'ON ' : 'OFF';
-        log(`Note ${cmdType}:\t${originalNoteName}\t→\t${transposedNoteName}\t|\tCh:${currentChannel + 1}\t|\tVel:${vel}`);
+        const isNoteOn = (cmd === 0x90 && vel > 0);
+        log(`Note ${cmdType}:\t${originalNoteName}\t→\t${transposedNoteName}\t|\tCh:${currentChannel + 1}\t|\tVel:${vel}`, isNoteOn);
     },
     onOtherMessage: ([status, d1, d2]) => {
         const newStatus = (status & 0xf0) | currentChannel;
@@ -151,6 +166,19 @@ async function setup() {
                     break;
             }
         });
+
+        // 分割切り替えイベント
+        splitVertical.onclick = () => {
+            logContainer.className = 'log-split-container log-split-vertical';
+            splitVertical.classList.add('active');
+            splitHorizontal.classList.remove('active');
+        };
+
+        splitHorizontal.onclick = () => {
+            logContainer.className = 'log-split-container log-split-horizontal';
+            splitHorizontal.classList.add('active');
+            splitVertical.classList.remove('active');
+        };
 
         // 初期選択
         if (inputSelect.options.length) inputSelect.selectedIndex = 0;
