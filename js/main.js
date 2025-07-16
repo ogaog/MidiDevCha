@@ -21,6 +21,14 @@ let currentChannel = 7;
 let transpose = 0;
 const pressedSet = new Set();
 
+// LocalStorageキー
+const STORAGE_KEYS = {
+    inputDevice: 'midi_input_device',
+    outputDevice: 'midi_output_device',
+    channel: 'midi_channel',
+    transpose: 'midi_transpose'
+};
+
 // ログ管理
 const MAX_LOG_LINES = 100; // ログの最大行数
 
@@ -30,6 +38,52 @@ function noteToName(noteNumber) {
     const octave = Math.floor(noteNumber / 12) - 1;
     const noteName = noteNames[noteNumber % 12];
     return `${noteName}${octave}`;
+}
+
+// 設定をLocalStorageに保存
+function saveSettings() {
+    localStorage.setItem(STORAGE_KEYS.inputDevice, inputSelect.value);
+    localStorage.setItem(STORAGE_KEYS.outputDevice, outputSelect.value);
+    localStorage.setItem(STORAGE_KEYS.channel, currentChannel.toString());
+    localStorage.setItem(STORAGE_KEYS.transpose, transpose.toString());
+}
+
+// 設定をLocalStorageから読み込み
+function loadSettings() {
+    const savedChannel = localStorage.getItem(STORAGE_KEYS.channel);
+    const savedTranspose = localStorage.getItem(STORAGE_KEYS.transpose);
+
+    if (savedChannel !== null) {
+        currentChannel = parseInt(savedChannel);
+    }
+    if (savedTranspose !== null) {
+        transpose = parseInt(savedTranspose);
+        transInput.value = transpose;
+    }
+}
+
+// デバイスを自動選択（前回選択したデバイスを復元）
+function selectSavedDevice(selectElement, devices, storageKey) {
+    const savedDeviceId = localStorage.getItem(storageKey);
+
+    if (savedDeviceId) {
+        // 前回選択したデバイスが利用可能かチェック
+        const savedDevice = devices.find(device => device.id === savedDeviceId);
+        if (savedDevice) {
+            selectElement.value = savedDeviceId;
+            log(`Restored previous device: ${savedDevice.name}`);
+            return savedDeviceId;
+        }
+    }
+
+    // 前回のデバイスが見つからない場合は最初のデバイスを選択
+    if (devices.length > 0) {
+        selectElement.value = devices[0].id;
+        log(`Selected first available device: ${devices[0].name}`);
+        return devices[0].id;
+    }
+
+    return null;
 }
 
 // ログ出力（最大行数制限付き）
@@ -98,6 +152,7 @@ function updateTranspose(newValue) {
     transpose = newValue;
     transInput.value = transpose;
     updateChord(); // トランスポーズ変更時にコードも更新
+    saveSettings(); // 設定を保存
     log(`Settings:\t\tTranspose\t→\t${transpose}`);
 }
 
@@ -106,6 +161,7 @@ function updateChannel(newValue) {
     if (newValue >= 0 && newValue <= 15) {
         currentChannel = newValue;
         channelSelect.value = currentChannel;
+        saveSettings(); // 設定を保存
         log(`Settings:\t\tChannel\t\t→\t${currentChannel + 1}`);
     }
 }
@@ -113,23 +169,63 @@ function updateChannel(newValue) {
 async function setup() {
     try {
         await midi.init();
+
+        // 設定を読み込み
+        loadSettings();
+
         // デバイスリストを埋める
-        midi.listInputs().forEach(i => {
-            const opt = document.createElement('option'); opt.value = i.id; opt.text = i.name; inputSelect.add(opt);
+        const inputDevices = midi.listInputs();
+        const outputDevices = midi.listOutputs();
+
+        inputDevices.forEach(i => {
+            const opt = document.createElement('option');
+            opt.value = i.id;
+            opt.text = i.name;
+            inputSelect.add(opt);
         });
-        midi.listOutputs().forEach(o => {
-            const opt = document.createElement('option'); opt.value = o.id; opt.text = o.name; outputSelect.add(opt);
+
+        outputDevices.forEach(o => {
+            const opt = document.createElement('option');
+            opt.value = o.id;
+            opt.text = o.name;
+            outputSelect.add(opt);
         });
+
         // チャンネル1-16
         for (let i = 0; i < 16; i++) {
-            const opt = document.createElement('option'); opt.value = i; opt.text = i + 1; channelSelect.add(opt);
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.text = i + 1;
+            channelSelect.add(opt);
         }
         channelSelect.value = currentChannel;
 
-        // イベント
-        inputSelect.onchange = () => midi.selectInput(inputSelect.value);
-        outputSelect.onchange = () => midi.selectOutput(outputSelect.value);
-        channelSelect.onchange = () => currentChannel = +channelSelect.value;
+        // デバイス自動選択（前回選択したデバイスを復元）
+        const selectedInputId = selectSavedDevice(
+            inputSelect,
+            inputDevices,
+            STORAGE_KEYS.inputDevice
+        );
+
+        const selectedOutputId = selectSavedDevice(
+            outputSelect,
+            outputDevices,
+            STORAGE_KEYS.outputDevice
+        );
+
+        // イベント（設定保存付き）
+        inputSelect.onchange = () => {
+            midi.selectInput(inputSelect.value);
+            saveSettings();
+        };
+        outputSelect.onchange = () => {
+            midi.selectOutput(outputSelect.value);
+            saveSettings();
+        };
+        channelSelect.onchange = () => {
+            currentChannel = +channelSelect.value;
+            saveSettings();
+        };
         incChan.onclick = () => updateChannel(currentChannel + 1);
         decChan.onclick = () => updateChannel(currentChannel - 1);
 
@@ -180,11 +276,16 @@ async function setup() {
             splitVertical.classList.remove('active');
         };
 
-        // 初期選択
-        if (inputSelect.options.length) inputSelect.selectedIndex = 0;
-        if (outputSelect.options.length) outputSelect.selectedIndex = 0;
-        midi.selectInput(inputSelect.value);
-        midi.selectOutput(outputSelect.value);
+        // 選択されたデバイスに接続
+        if (selectedInputId) {
+            midi.selectInput(selectedInputId);
+        }
+        if (selectedOutputId) {
+            midi.selectOutput(selectedOutputId);
+        }
+
+        // 初期状態をログに記録
+        log(`System:\t\tMIDI Debaucher initialized`);
 
     } catch (e) {
         alert('MIDIアクセス失敗: ' + e);
