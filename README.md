@@ -13,12 +13,11 @@ Web MIDI APIを使用したチャンネル選択可能なリアルタイムMIDI�
 
 ### 使用技術
 - **Web MIDI API**: ブラウザネイティブのMIDI処理
-- **ES Modules**: モジュール分割による保守性向上
-- **Tonal.js**: 音楽理論ライブラリによる高精度コード検出
+- **Tonal.js**: 音楽理論ライブラリによるコード検出
 
 ### 依存関係
 - [Tonal.js](https://github.com/tonaljs/tonal) (CDN経由): 音楽理論とコード検出
-- Web MIDI API対応ブラウザ（Chrome、Edge、Opera等）
+- Web MIDI API対応ブラウザ（Chrome等）
 
 ### 使用方法
 1. MIDIデバイスを接続
