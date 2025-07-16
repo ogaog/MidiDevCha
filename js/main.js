@@ -26,7 +26,8 @@ const STORAGE_KEYS = {
     inputDevice: 'midi_input_device',
     outputDevice: 'midi_output_device',
     channel: 'midi_channel',
-    transpose: 'midi_transpose'
+    transpose: 'midi_transpose',
+    logSplit: 'midi_log_split' // 'vertical' or 'horizontal'
 };
 
 // ログ管理
@@ -46,12 +47,17 @@ function saveSettings() {
     localStorage.setItem(STORAGE_KEYS.outputDevice, outputSelect.value);
     localStorage.setItem(STORAGE_KEYS.channel, currentChannel.toString());
     localStorage.setItem(STORAGE_KEYS.transpose, transpose.toString());
+
+    // 分割設定を保存
+    const isVertical = logContainer.classList.contains('log-split-vertical');
+    localStorage.setItem(STORAGE_KEYS.logSplit, isVertical ? 'vertical' : 'horizontal');
 }
 
 // 設定をLocalStorageから読み込み
 function loadSettings() {
     const savedChannel = localStorage.getItem(STORAGE_KEYS.channel);
     const savedTranspose = localStorage.getItem(STORAGE_KEYS.transpose);
+    const savedLogSplit = localStorage.getItem(STORAGE_KEYS.logSplit);
 
     if (savedChannel !== null) {
         currentChannel = parseInt(savedChannel);
@@ -59,6 +65,20 @@ function loadSettings() {
     if (savedTranspose !== null) {
         transpose = parseInt(savedTranspose);
         transInput.value = transpose;
+    }
+
+    // 分割設定を復元
+    if (savedLogSplit) {
+        if (savedLogSplit === 'vertical') {
+            logContainer.className = 'log-split-container log-split-vertical';
+            splitVertical.classList.add('active');
+            splitHorizontal.classList.remove('active');
+        } else {
+            logContainer.className = 'log-split-container log-split-horizontal';
+            splitHorizontal.classList.add('active');
+            splitVertical.classList.remove('active');
+        }
+        log(`Restored log split: ${savedLogSplit}`);
     }
 }
 
@@ -268,12 +288,16 @@ async function setup() {
             logContainer.className = 'log-split-container log-split-vertical';
             splitVertical.classList.add('active');
             splitHorizontal.classList.remove('active');
+            saveSettings(); // 設定を保存
+            log(`Log split changed to: vertical`);
         };
 
         splitHorizontal.onclick = () => {
             logContainer.className = 'log-split-container log-split-horizontal';
             splitHorizontal.classList.add('active');
             splitVertical.classList.remove('active');
+            saveSettings(); // 設定を保存
+            log(`Log split changed to: horizontal`);
         };
 
         // 選択されたデバイスに接続
