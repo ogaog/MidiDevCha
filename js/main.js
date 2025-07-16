@@ -20,6 +20,14 @@ const pressedSet = new Set();
 // ログ管理
 const MAX_LOG_LINES = 100; // ログの最大行数
 
+// MIDIノート番号を音階名に変換（C4=60）
+function noteToName(noteNumber) {
+    const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const octave = Math.floor(noteNumber / 12) - 1;
+    const noteName = noteNames[noteNumber % 12];
+    return `${noteName}${octave}`;
+}
+
 // ログ出力（最大行数制限付き）
 function log(msg) {
     const timestamp = new Date().toLocaleTimeString();
@@ -48,13 +56,19 @@ const midi = new MIDIHandler({
 
         // 転送メッセージ作成＆送信
         const newStatus = (status & 0xf0) | currentChannel;
-        midi.sendMessage([newStatus, note + transpose, vel]);
-        log(`Sent: ${newStatus.toString(16)} ${note + transpose} ${vel}`);
+        const transposedNote = note + transpose;
+        midi.sendMessage([newStatus, transposedNote, vel]);
+
+        // 音階名を含むログ出力
+        const originalNoteName = noteToName(note);
+        const transposedNoteName = noteToName(transposedNote);
+        const cmdType = (cmd === 0x90 && vel > 0) ? 'ON' : 'OFF';
+        log(`Note ${cmdType}: ${originalNoteName} → ${transposedNoteName} (Ch:${currentChannel + 1}, Vel:${vel})`);
     },
     onOtherMessage: ([status, d1, d2]) => {
         const newStatus = (status & 0xf0) | currentChannel;
         midi.sendMessage([newStatus, d1, d2]);
-        log(`Sent Ctrl: ${newStatus.toString(16)} ${d1} ${d2}`);
+        log(`Control: Status:${newStatus.toString(16)} Data:${d1},${d2} (Ch:${currentChannel + 1})`);
     }
 });
 
