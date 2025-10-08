@@ -152,7 +152,10 @@ const midi = new MIDIHandler({
         const transposedNoteName = noteToName(transposedNote);
         const cmdType = (cmd === 0x90 && vel > 0) ? 'ON ' : 'OFF';
         const isNoteOn = (cmd === 0x90 && vel > 0);
-        log(`Note ${cmdType}:\t${originalNoteName}\t→\t${transposedNoteName}\t|\tCh:${currentChannel + 1}\t|\tVel:${vel}`, isNoteOn);
+        const maxBars = 20; // 表示する最大 "|" 数
+        const barCount = Math.round((vel / 127) * maxBars);
+        const velBars = barCount > 0 ? ' ' + '|'.repeat(barCount) : '';
+        log(`Note ${cmdType}:\t${originalNoteName}\t→\t${transposedNoteName}\t|\tCh:${currentChannel + 1}\t|\tVel:${vel}${velBars}`, isNoteOn);
     },
     onOtherMessage: ([status, d1, d2]) => {
         const newStatus = (status & 0xf0) | currentChannel;
