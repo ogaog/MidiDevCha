@@ -152,11 +152,36 @@ const midi = new MIDIHandler({
         const transposedNoteName = noteToName(transposedNote);
         const cmdType = (cmd === 0x90 && vel > 0) ? 'ON ' : 'OFF';
         const isNoteOn = (cmd === 0x90 && vel > 0);
-        const maxBars = 20; // 表示する最大 "|" 数
-        const barCount = Math.round((vel / 127) * maxBars);
-        const velBars = barCount > 0 ? ' ' + '|'.repeat(barCount) : '';
+        const maxBars = 60; // 表示する最大 "単位" 数
+
+        // vel を maxBars にマッピングして整数カウントを得る（0..maxBars）
+        let barCount = Math.round((vel / 127) * maxBars);
+        barCount = Math.max(0, Math.min(maxBars, barCount));
+
+        // 終端に ":" を付けることで2倍表現を行うパターン
+        // シーケンス（index = 1..）: 1->":", 2->"|", 3->"|:", 4->"||", 5->"||:", ...
+        const formatFancyBars = (count) => {
+            if (count <= 0) return ''.padEnd(maxBars / 2 + 1, ' '); // 空の場合もスペースでパディング
+            const i = count - 1; // 0-based index
+            let result = '';
+            if (i === 0) result = ':'; // 最小
+            else if (i % 2 === 1) result = '|'.repeat((i + 1) / 2); // 奇数インデックス -> '|' のみ
+            else result = '|'.repeat(i / 2) + ':'; // 偶数インデックス -> '|' の後に ':'
+
+            // 一定の幅になるようにスペースでパディング
+            return result.padEnd(maxBars / 2 + 1, ' ');
+        };
+
+        const velBars = formatFancyBars(barCount);
         const velStr = String(vel).padStart(3, ' ');
-        log(`Note ${cmdType}:\t${originalNoteName}\t→\t${transposedNoteName}\t|\tCh:${currentChannel + 1}\t|\tVel:${velStr}${velBars}`, isNoteOn);
+
+        const clampedTransposed = Math.max(0, Math.min(127, transposedNote));
+        let heightBarCount = Math.round((clampedTransposed / 127) * maxBars);
+        heightBarCount = Math.max(0, Math.min(maxBars, heightBarCount));
+        const heightBars = formatFancyBars(heightBarCount);
+
+        const formatName = (n) => (n.length > 3 ? n.slice(0, 3) : n.padEnd(3, ' '));
+        log(`Note ${cmdType}: ${formatName(originalNoteName)} → ${formatName(transposedNoteName)}${heightBars} | Ch:${currentChannel + 1} | Vel:${velStr}${velBars}`, isNoteOn);
     },
     onOtherMessage: ([status, d1, d2]) => {
         const newStatus = (status & 0xf0) | currentChannel;
