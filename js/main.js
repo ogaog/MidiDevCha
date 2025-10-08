@@ -155,7 +155,8 @@ const midi = new MIDIHandler({
         const maxBars = 20; // 表示する最大 "|" 数
         const barCount = Math.round((vel / 127) * maxBars);
         const velBars = barCount > 0 ? ' ' + '|'.repeat(barCount) : '';
-        log(`Note ${cmdType}:\t${originalNoteName}\t→\t${transposedNoteName}\t|\tCh:${currentChannel + 1}\t|\tVel:${vel}${velBars}`, isNoteOn);
+        const velStr = String(vel).padStart(3, ' ');
+        log(`Note ${cmdType}:\t${originalNoteName}\t→\t${transposedNoteName}\t|\tCh:${currentChannel + 1}\t|\tVel:${velStr}${velBars}`, isNoteOn);
     },
     onOtherMessage: ([status, d1, d2]) => {
         const newStatus = (status & 0xf0) | currentChannel;
