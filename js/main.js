@@ -82,6 +82,14 @@ function loadSettings() {
     }
 }
 
+// カウントダウン関数（5秒待機）
+async function waitWithCountdown(seconds) {
+    for (let i = seconds; i > 0; i--) {
+        log(`Device auto-selection in ${i} second${i > 1 ? 's' : ''}...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+}
+
 // デバイスを自動選択（前回選択したデバイスを復元）
 function selectSavedDevice(selectElement, devices, storageKey) {
     const savedDeviceId = localStorage.getItem(storageKey);
@@ -248,6 +256,9 @@ async function setup() {
             channelSelect.add(opt);
         }
         channelSelect.value = currentChannel;
+
+        // 5秒待機してからデバイス自動選択（機器の読み込みを待つ）
+        await waitWithCountdown(5);
 
         // デバイス自動選択（前回選択したデバイスを復元）
         const selectedInputId = selectSavedDevice(
