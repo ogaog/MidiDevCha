@@ -82,7 +82,7 @@ function loadSettings() {
     }
 }
 
-// カウントダウン関数（5秒待機）
+// カウントダウン関数（2秒待機）
 async function waitWithCountdown(seconds) {
     for (let i = seconds; i > 0; i--) {
         log(`Device auto-selection in ${i} second${i > 1 ? 's' : ''}...`);
@@ -258,7 +258,7 @@ async function setup() {
         channelSelect.value = currentChannel;
 
         // 5秒待機してからデバイス自動選択（機器の読み込みを待つ）
-        await waitWithCountdown(5);
+        await waitWithCountdown(2);
 
         // デバイス自動選択（前回選択したデバイスを復元）
         const selectedInputId = selectSavedDevice(
