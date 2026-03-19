@@ -22,7 +22,7 @@ const logContainer = document.getElementById('logContainer');
 const splitVertical = document.getElementById('splitVertical');
 const splitHorizontal = document.getElementById('splitHorizontal');
 
-let currentChannel = 7;
+let currentChannel = 0;
 let transpose = 0;
 const pressedSet = new Set();
 
@@ -79,7 +79,10 @@ function loadSettings() {
     const savedLogSplit = localStorage.getItem(STORAGE_KEYS.logSplit);
 
     if (savedChannel !== null) {
-        currentChannel = parseInt(savedChannel);
+        const parsedChannel = parseInt(savedChannel, 10);
+        currentChannel = Number.isInteger(parsedChannel) && parsedChannel >= 0 && parsedChannel <= 15
+            ? parsedChannel
+            : 0;
     }
     if (savedTranspose !== null) {
         transpose = parseInt(savedTranspose);
