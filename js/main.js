@@ -1,6 +1,10 @@
 import { MIDIHandler } from './midiHandler.js';
 import { detectChord } from './chordDetector.js';
 
+const DEGREE_NAMES = ['I', 'bII', 'II', 'bIII', 'III', 'IV', 'bV', 'V', 'bVI', 'VI', 'bVII', 'VII'];
+
+const mod12 = (n) => ((n % 12) + 12) % 12;
+
 // DOM 要素の参照
 const inputSelect = document.getElementById('inputDeviceSelect');
 const outputSelect = document.getElementById('outputDeviceSelect');
@@ -11,6 +15,7 @@ const transInput = document.getElementById('transposeAmount');
 const incTrans = document.getElementById('incrementTranspose');
 const decTrans = document.getElementById('decrementTranspose');
 const chordDisplay = document.getElementById('chordDisplay');
+const degreeDisplay = document.getElementById('degreeDisplay');
 const noteOnLog = document.getElementById('noteOnLog');
 const allLog = document.getElementById('allLog');
 const logContainer = document.getElementById('logContainer');
@@ -32,6 +37,20 @@ const STORAGE_KEYS = {
 
 // ログ管理
 const MAX_LOG_LINES = 100; // ログの最大行数
+
+function getDegreeName(chordInfo, transposeAmount) {
+    if (!chordInfo || chordInfo.root === null) return '–';
+
+    const tonicPc = mod12(transposeAmount); // transpose=0 を Cメジャーの I とする
+    const rootDegree = DEGREE_NAMES[mod12(chordInfo.root - tonicPc)];
+
+    if (chordInfo.slashBassPc === null) {
+        return `${rootDegree}${chordInfo.suffix}`;
+    }
+
+    const bassDegree = DEGREE_NAMES[mod12(chordInfo.slashBassPc - tonicPc)];
+    return `${rootDegree}${chordInfo.suffix}/${bassDegree}`;
+}
 
 // MIDIノート番号を音階名に変換（C4=60）
 function noteToName(noteNumber) {
@@ -95,7 +114,6 @@ function selectSavedDevice(selectElement, devices, storageKey) {
     const savedDeviceId = localStorage.getItem(storageKey);
 
     if (savedDeviceId) {
-        // 前回選択したデバイスが利用可能かチェック
         const savedDevice = devices.find(device => device.id === savedDeviceId);
         if (savedDevice) {
             selectElement.value = savedDeviceId;
@@ -104,7 +122,6 @@ function selectSavedDevice(selectElement, devices, storageKey) {
         }
     }
 
-    // 前回のデバイスが見つからない場合は最初のデバイスを選択
     if (devices.length > 0) {
         selectElement.value = devices[0].id;
         log(`Selected first available device: ${devices[0].name}`);
@@ -119,20 +136,16 @@ function log(msg, isNoteOn = false) {
     const timestamp = new Date().toLocaleTimeString();
     const logLine = `[${timestamp}] ${msg}`;
 
-    // すべてのログに追加
     allLog.textContent = logLine + '\n' + allLog.textContent;
 
-    // Note ON の場合は専用ログにも追加
     if (isNoteOn) {
         noteOnLog.textContent = logLine + '\n' + noteOnLog.textContent;
     }
 
-    // 行数制限チェック（両方のログ領域）
     limitLogLines(allLog);
     limitLogLines(noteOnLog);
 }
 
-// ログ行数制限関数
 function limitLogLines(logElement) {
     const lines = logElement.textContent.split('\n');
     if (lines.length > MAX_LOG_LINES) {
@@ -150,33 +163,26 @@ const midi = new MIDIHandler({
         }
         updateChord();
 
-        // 転送メッセージ作成＆送信
         const newStatus = (status & 0xf0) | currentChannel;
         const transposedNote = note + transpose;
         midi.sendMessage([newStatus, transposedNote, vel]);
 
-        // 音階名を含むログ出力
         const originalNoteName = noteToName(note);
         const transposedNoteName = noteToName(transposedNote);
         const cmdType = (cmd === 0x90 && vel > 0) ? 'ON ' : 'OFF';
         const isNoteOn = (cmd === 0x90 && vel > 0);
-        const maxBars = 60; // 表示する最大 "単位" 数
+        const maxBars = 60;
 
-        // vel を maxBars にマッピングして整数カウントを得る（0..maxBars）
         let barCount = Math.round((vel / 127) * maxBars);
         barCount = Math.max(0, Math.min(maxBars, barCount));
 
-        // 終端に ":" を付けることで2倍表現を行うパターン
-        // シーケンス（index = 1..）: 1->":", 2->"|", 3->"|:", 4->"||", 5->"||:", ...
         const formatFancyBars = (count) => {
-            if (count <= 0) return ''.padEnd(maxBars / 2 + 1, ' '); // 空の場合もスペースでパディング
-            const i = count - 1; // 0-based index
+            if (count <= 0) return ''.padEnd(maxBars / 2 + 1, ' ');
+            const i = count - 1;
             let result = '';
-            if (i === 0) result = ':'; // 最小
-            else if (i % 2 === 1) result = '|'.repeat((i + 1) / 2); // 奇数インデックス -> '|' のみ
-            else result = '|'.repeat(i / 2) + ':'; // 偶数インデックス -> '|' の後に ':'
-
-            // 一定の幅になるようにスペースでパディング
+            if (i === 0) result = ':';
+            else if (i % 2 === 1) result = '|'.repeat((i + 1) / 2);
+            else result = '|'.repeat(i / 2) + ':';
             return result.padEnd(maxBars / 2 + 1, ' ');
         };
 
@@ -199,26 +205,25 @@ const midi = new MIDIHandler({
 });
 
 function updateChord() {
-    // トランスポーズされたノートでコード検出
     const transposedNotes = Array.from(pressedSet).map(note => note + transpose);
-    chordDisplay.textContent = detectChord(transposedNotes);
+    const chordInfo = detectChord(transposedNotes);
+    chordDisplay.textContent = chordInfo.label;
+    degreeDisplay.textContent = getDegreeName(chordInfo, transpose);
 }
 
-// トランスポーズ値を更新してUIに反映
 function updateTranspose(newValue) {
     transpose = newValue;
     transInput.value = transpose;
-    updateChord(); // トランスポーズ変更時にコードも更新
-    saveSettings(); // 設定を保存
+    updateChord();
+    saveSettings();
     log(`Settings:\t\tTranspose\t→\t${transpose}`);
 }
 
-// チャンネル値を更新してUIに反映
 function updateChannel(newValue) {
     if (newValue >= 0 && newValue <= 15) {
         currentChannel = newValue;
         channelSelect.value = currentChannel;
-        saveSettings(); // 設定を保存
+        saveSettings();
         log(`Settings:\t\tChannel\t\t→\t${currentChannel + 1}`);
     }
 }
@@ -227,10 +232,8 @@ async function setup() {
     try {
         await midi.init();
 
-        // 設定を読み込み
         loadSettings();
 
-        // デバイスリストを埋める
         const inputDevices = midi.listInputs();
         const outputDevices = midi.listOutputs();
 
@@ -248,7 +251,6 @@ async function setup() {
             outputSelect.add(opt);
         });
 
-        // チャンネル1-16
         for (let i = 0; i < 16; i++) {
             const opt = document.createElement('option');
             opt.value = i;
@@ -257,23 +259,11 @@ async function setup() {
         }
         channelSelect.value = currentChannel;
 
-        // 5秒待機してからデバイス自動選択（機器の読み込みを待つ）
         await waitWithCountdown(2);
 
-        // デバイス自動選択（前回選択したデバイスを復元）
-        const selectedInputId = selectSavedDevice(
-            inputSelect,
-            inputDevices,
-            STORAGE_KEYS.inputDevice
-        );
+        const selectedInputId = selectSavedDevice(inputSelect, inputDevices, STORAGE_KEYS.inputDevice);
+        const selectedOutputId = selectSavedDevice(outputSelect, outputDevices, STORAGE_KEYS.outputDevice);
 
-        const selectedOutputId = selectSavedDevice(
-            outputSelect,
-            outputDevices,
-            STORAGE_KEYS.outputDevice
-        );
-
-        // イベント（設定保存付き）
         inputSelect.onchange = () => {
             midi.selectInput(inputSelect.value);
             saveSettings();
@@ -291,14 +281,12 @@ async function setup() {
 
         transInput.oninput = () => {
             transpose = +transInput.value;
-            updateChord(); // 手動入力時にもコードを更新
+            updateChord();
         };
         incTrans.onclick = () => updateTranspose(transpose + 1);
         decTrans.onclick = () => updateTranspose(transpose - 1);
 
-        // キーボードイベント（矢印キー）
         document.addEventListener('keydown', (event) => {
-            // フォーカスが入力フィールドにある場合は無視
             if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT') {
                 return;
             }
@@ -323,12 +311,11 @@ async function setup() {
             }
         });
 
-        // 分割切り替えイベント
         splitVertical.onclick = () => {
             logContainer.className = 'log-split-container log-split-vertical';
             splitVertical.classList.add('active');
             splitHorizontal.classList.remove('active');
-            saveSettings(); // 設定を保存
+            saveSettings();
             log(`Log split changed to: vertical`);
         };
 
@@ -336,11 +323,10 @@ async function setup() {
             logContainer.className = 'log-split-container log-split-horizontal';
             splitHorizontal.classList.add('active');
             splitVertical.classList.remove('active');
-            saveSettings(); // 設定を保存
+            saveSettings();
             log(`Log split changed to: horizontal`);
         };
 
-        // 選択されたデバイスに接続
         if (selectedInputId) {
             midi.selectInput(selectedInputId);
         }
@@ -348,9 +334,8 @@ async function setup() {
             midi.selectOutput(selectedOutputId);
         }
 
-        // 初期状態をログに記録
+        updateChord();
         log(`System:\t\tMIDI Debaucher initialized`);
-
     } catch (e) {
         alert('MIDIアクセス失敗: ' + e);
     }

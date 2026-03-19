@@ -32,168 +32,169 @@ function buildCandidate(root, pcs, bassPc) {
   const hasSharp9 = has(3) && has3;
 
   const explained = new Set([0]);
-  let label = NOTE_NAMES[root];
+  let suffix = '';
   let quality = 'unknown';
   let family = 'other';
   let score = 0;
 
   if (hasb3 && hasb5 && has6) {
-    label += 'dim7';
+    suffix = 'dim7';
     quality = 'dim7';
     family = 'dim';
     addAll(explained, [3, 6, 9]);
     score += 44;
   } else if (hasb3 && hasb5 && hasb7) {
-    label += 'm7b5';
+    suffix = 'm7b5';
     quality = 'm7b5';
     family = 'half-diminished';
     addAll(explained, [3, 6, 10]);
     score += 43;
   } else if (!has3 && !hasb3 && has4 && has5 && hasb7) {
-    label += has2 ? '9sus4' : '7sus4';
+    suffix = has2 ? '9sus4' : '7sus4';
     quality = has2 ? '9sus4' : '7sus4';
     family = 'sus';
     addAll(explained, has2 ? [2, 5, 7, 10] : [5, 7, 10]);
     score += has2 ? 42 : 39;
   } else if (has3 && has5 && has7 && has2) {
-    label += 'maj9';
+    suffix = 'maj9';
     quality = 'maj9';
     family = 'major';
     addAll(explained, [2, 4, 7, 11]);
     score += 43;
   } else if (hasb3 && has5 && hasb7 && has2) {
-    label += 'm9';
+    suffix = 'm9';
     quality = 'm9';
     family = 'minor';
     addAll(explained, [2, 3, 7, 10]);
     score += 43;
   } else if (has3 && has5 && hasb7 && has2) {
-    label += '9';
+    suffix = '9';
     quality = '9';
     family = 'dominant';
     addAll(explained, [2, 4, 7, 10]);
     score += 42;
   } else if (has3 && has5 && has7) {
-    label += 'maj7';
+    suffix = 'maj7';
     quality = 'maj7';
     family = 'major';
     addAll(explained, [4, 7, 11]);
     score += 38;
   } else if (hasb3 && has5 && has7) {
-    label += 'mMaj7';
+    suffix = 'mMaj7';
     quality = 'mMaj7';
     family = 'minor';
     addAll(explained, [3, 7, 11]);
     score += 38;
   } else if (has3 && has5 && hasb7) {
-    label += '7';
+    suffix = '7';
     quality = '7';
     family = 'dominant';
     addAll(explained, [4, 7, 10]);
     score += 37;
   } else if (hasb3 && has5 && hasb7) {
-    label += 'm7';
+    suffix = 'm7';
     quality = 'm7';
     family = 'minor';
     addAll(explained, [3, 7, 10]);
     score += 37;
   } else if (has3 && has5 && has6 && has2) {
-    label += '6/9';
+    suffix = '6/9';
     quality = '6/9';
     family = 'major';
     addAll(explained, [2, 4, 7, 9]);
     score += 36;
   } else if (hasb3 && has5 && has6 && has2) {
-    label += 'm6/9';
+    suffix = 'm6/9';
     quality = 'm6/9';
     family = 'minor';
     addAll(explained, [2, 3, 7, 9]);
     score += 36;
   } else if (has3 && has5 && has6) {
-    label += '6';
+    suffix = '6';
     quality = '6';
     family = 'major';
     addAll(explained, [4, 7, 9]);
     score += 33;
   } else if (hasb3 && has5 && has6) {
-    label += 'm6';
+    suffix = 'm6';
     quality = 'm6';
     family = 'minor';
     addAll(explained, [3, 7, 9]);
     score += 33;
   } else if (has3 && hasSharp5) {
-    label += 'aug';
+    suffix = 'aug';
     quality = 'aug';
     family = 'aug';
     addAll(explained, [4, 8]);
     score += 31;
   } else if (hasb3 && hasb5) {
-    label += 'dim';
+    suffix = 'dim';
     quality = 'dim';
     family = 'dim';
     addAll(explained, [3, 6]);
     score += 31;
   } else if (!has3 && !hasb3 && has4 && has5) {
-    label += 'sus4';
+    suffix = 'sus4';
     quality = 'sus4';
     family = 'sus';
     addAll(explained, [5, 7]);
     score += 28;
   } else if (!has3 && !hasb3 && has2 && has5) {
-    label += 'sus2';
+    suffix = 'sus2';
     quality = 'sus2';
     family = 'sus';
     addAll(explained, [2, 7]);
     score += 27;
   } else if (has3 && has5 && has2) {
-    label += 'add9';
+    suffix = 'add9';
     quality = 'add9';
     family = 'major';
     addAll(explained, [2, 4, 7]);
     score += 29;
   } else if (hasb3 && has5 && has2) {
-    label += 'madd9';
+    suffix = 'madd9';
     quality = 'madd9';
     family = 'minor';
     addAll(explained, [2, 3, 7]);
     score += 29;
   } else if (has3 && has5 && has4) {
-    label += 'add11';
+    suffix = 'add11';
     quality = 'add11';
     family = 'major';
     addAll(explained, [4, 5, 7]);
     score += 28;
   } else if (hasb3 && has5 && has4) {
-    label += 'madd11';
+    suffix = 'madd11';
     quality = 'madd11';
     family = 'minor';
     addAll(explained, [3, 5, 7]);
     score += 28;
   } else if (has3 && has5) {
+    suffix = '';
     quality = 'major';
     family = 'major';
     addAll(explained, [4, 7]);
     score += 26;
   } else if (hasb3 && has5) {
-    label += 'm';
+    suffix = 'm';
     quality = 'minor';
     family = 'minor';
     addAll(explained, [3, 7]);
     score += 26;
   } else if (has5) {
-    label += '5';
+    suffix = '5';
     quality = 'power';
     family = 'power';
     explained.add(7);
     score += 18;
   } else if (has3) {
-    label += '(omit5)';
+    suffix = '(omit5)';
     quality = 'major-omit5';
     family = 'major';
     explained.add(4);
     score += 14;
   } else if (hasb3) {
-    label += 'm(omit5)';
+    suffix = 'm(omit5)';
     quality = 'minor-omit5';
     family = 'minor';
     explained.add(3);
@@ -204,46 +205,46 @@ function buildCandidate(root, pcs, bassPc) {
 
   if (family === 'dominant') {
     if (hasb9) {
-      label += '(b9)';
+      suffix += '(b9)';
       explained.add(1);
       score += 3;
     }
     if (hasSharp9) {
-      label += '(#9)';
+      suffix += '(#9)';
       explained.add(3);
       score += 2;
     }
     if (hasb5 && !explained.has(6)) {
-      label += '(b5)';
+      suffix += '(b5)';
       explained.add(6);
       score += 2;
     }
     if (hasSharp5 && !explained.has(8)) {
-      label += '(#5)';
+      suffix += '(#5)';
       explained.add(8);
       score += 2;
     }
     if (has6 && !explained.has(9) && !has4) {
-      label = label.replace(/^([A-G]#?)(7|9)/, '$1$2(13)');
+      suffix = suffix.replace(/^(7|9)/, '$1(13)');
       explained.add(9);
       score += 2;
     }
   }
 
   if ((quality === 'major' || quality === 'minor') && has6 && !explained.has(9)) {
-    label += '6';
+    suffix += '6';
     explained.add(9);
     score += 1;
   }
 
   if ((quality === 'major' || quality === 'minor') && has2 && !explained.has(2)) {
-    label += '(add9)';
+    suffix += '(add9)';
     explained.add(2);
     score += 1;
   }
 
   if ((quality === 'major' || quality === 'minor') && has4 && !explained.has(5)) {
-    label += '(add11)';
+    suffix += '(add11)';
     explained.add(5);
     score += 1;
   }
@@ -259,15 +260,34 @@ function buildCandidate(root, pcs, bassPc) {
   if (bassPc === root) score += 6;
   else if (iv.has(mod12(bassPc - root))) score += 2;
 
-  if (bassPc !== root && iv.has(mod12(bassPc - root))) {
-    label += `/${NOTE_NAMES[bassPc]}`;
-  }
+  const slashBassPc = bassPc !== root && iv.has(mod12(bassPc - root)) ? bassPc : null;
+  const label = `${NOTE_NAMES[root]}${suffix}${slashBassPc !== null ? `/${NOTE_NAMES[slashBassPc]}` : ''}`;
 
-  return { root, label, score };
+  return {
+    root,
+    bassPc,
+    slashBassPc,
+    suffix,
+    label,
+    quality,
+    family,
+    score,
+  };
 }
 
 export function detectChord(pressedNotes) {
-  if (!pressedNotes?.length) return '–';
+  if (!pressedNotes?.length) {
+    return {
+      label: '–',
+      root: null,
+      bassPc: null,
+      slashBassPc: null,
+      suffix: '',
+      quality: null,
+      family: null,
+      score: -Infinity,
+    };
+  }
 
   const sortedNotes = [...new Set(pressedNotes)].sort((a, b) => a - b);
   const pcs = uniquePitchClasses(sortedNotes);
@@ -280,5 +300,16 @@ export function detectChord(pressedNotes) {
     if (!best || candidate.score > best.score) best = candidate;
   }
 
-  return best ? best.label : NOTE_NAMES[bassPc];
+  if (best) return best;
+
+  return {
+    label: NOTE_NAMES[bassPc],
+    root: bassPc,
+    bassPc,
+    slashBassPc: null,
+    suffix: '',
+    quality: 'single',
+    family: 'single',
+    score: 0,
+  };
 }

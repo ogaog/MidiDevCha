@@ -52,9 +52,33 @@
             border-radius: 6px;
         }
 
-        #chordDisplay {
+        .chord-readout {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            margin-top: 0.5rem;
+        }
+
+        .chord-line {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        #chordDisplay,
+        #degreeDisplay {
             font-size: 1.5rem;
-            margin-left: 0.5rem;
+            margin-left: 0.25rem;
+        }
+
+        #degreeDisplay {
+            color: #9ad1ff;
+        }
+
+        .degree-hint {
+            color: #888;
+            font-size: 0.85rem;
         }
 
         #logOutput {
@@ -165,9 +189,18 @@
             <button id="incrementTranspose">+</button>
             <button id="decrementTranspose">-</button>
         </div>
-        <div>
-            <strong>Current Chord:</strong>
-            <span id="chordDisplay">–</span>
+        <div class="chord-readout">
+            <div class="chord-line">
+                <strong>Current Chord:</strong>
+                <span id="chordDisplay">–</span>
+            </div>
+            <div class="chord-line">
+                <strong>Degree Name:</strong>
+                <span id="degreeDisplay">–</span>
+            </div>
+            <div class="chord-line">
+                <span class="degree-hint">(transpose = 0 を Cメジャー基準として表示)</span>
+            </div>
         </div>
     </div>
 
@@ -190,9 +223,7 @@
         </div>
     </div>
 
-    <!-- Tonal.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/tonal/browser/tonal.min.js"></script>
-    <!-- ES モジュール読み込み -->
     <script type="module" src="js/main.js"></script>
 </body>
 
